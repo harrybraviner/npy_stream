@@ -77,8 +77,10 @@ fn make_header(num_rows: usize, num_cols: usize) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use std::{io::{BufReader, Read}, str::from_utf8};
     use crate::make_header;
     use tempfile::tempdir;
+    use regex::Regex;
     use super::*;
 
     #[test]
@@ -99,5 +101,30 @@ mod tests {
         npy_stream.write(vec![2.0, 3.0]);
 
         drop(npy_stream);   // Cause the file to be closed
+
+        // Re-open the file and verify some properties of the write.
+        let file = File::open(file_path).unwrap();
+        let mut reader = BufReader::new(file);
+
+        let mut bytes : Vec<u8> = vec![];
+        reader.read_to_end(&mut bytes).unwrap();
+
+        // Check size matches that of a header, plus 4 floats (each 4 bytes).
+        assert_eq!(bytes.len(), 128 + 4*4);
+
+        // Drop the non-string (magic number, version, and size) parts, and use the remained of the
+        // header to check that the size was written correctly.
+        let header = from_utf8(&bytes[10..128]).unwrap();
+
+        let re = Regex::new(r"'shape': \(([0-9]+), ([0-9]+)\)").unwrap();
+        assert!(re.is_match(header));
+
+        let cap = re.captures(header).unwrap();
+        let rows_actual = cap[1].parse::<usize>().unwrap();
+        let cols_actual = cap[2].parse::<usize>().unwrap();
+
+        // Check that we actualy did overwrite the header at the end.
+        assert_eq!(rows_actual, 2);
+        assert_eq!(cols_actual, 2);
     }
 }
