@@ -13,3 +13,13 @@ However, they are slow to read into python, and take up for more disc space.
 The solution we introduce is to write `.npy` files in a _streaming_ fashion.
 We provide a struct `NPYStream`, whose `write` method takes a `Vec<f32>` and promptly writes this to disc (subject to delays introduced by the buffered writer).
 This allows complex feature engineering without having to worry about the memory consumed by storing the results.
+
+# Limitations
+
+Currently we only support unstructured arrays of 32-bit floats.
+This is probably sufficient for most purposes.
+
+# To do
+
+* 16-bit float support.
+* Better error handling.
