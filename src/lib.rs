@@ -7,7 +7,6 @@ pub struct NPYStream {
 }
 
 impl NPYStream {
-
     pub fn new(num_cols: usize) -> Self {
         unimplemented!()
     }
@@ -27,15 +26,41 @@ impl Drop for NPYStream {
     }
 }
 
-fn make_header(num_cols: usize) -> String {
+fn make_header(num_rows: usize, num_cols: usize) -> Vec<u8> {
+    let header_prefix : &[u8] = b"\x93NUMPY\x01\x00";   // Format version 1.0
 
+    let header_str = format!("{{'descr': 'float32', 'fortran_order': False, 'shape': ({}, {})}}",
+        num_rows, num_cols);
+    let header = header_str.as_bytes();
+    
+    let header_size_bytes = (header.len() as u16).to_le_bytes();
+
+    let padding_required = 128 - (header_prefix.len() + header_size_bytes.len() + header.len() + 1);
+
+    // Concat, pad, and add newline.
+    let padding = vec![b' '; padding_required];
+
+    let full_header = [
+        header_prefix,
+        &header_size_bytes,
+        header,
+        &padding,
+        b"\n"
+    ].concat();
+
+    assert_eq!(full_header.len(), 128);
+
+    return full_header;
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::make_header;
+
     #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
+    fn header_len_correct() {
+        assert_eq!(make_header(1, 1).len(), 128);
+        assert_eq!(make_header(100, 100).len(), 128);
+        assert_eq!(make_header(1_000_000, 100).len(), 128);
     }
 }
