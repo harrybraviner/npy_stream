@@ -1,5 +1,5 @@
-NPY Streams
-===========
+NPY Stream
+==========
 
 Numpy arrays are an efficient, commonly used data format in python.
 A good starting point for machine learning is to have your features in a numpy array, with rows being examples and columns being features.
