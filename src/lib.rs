@@ -1,20 +1,37 @@
+use std::path::Path;
 use std::fs::File;
+use std::io::{BufWriter, Write};
 
 pub struct NPYStream {
-    file: File,
+    writer: BufWriter<File>,
     num_cols: usize,
     num_rows: usize,
 }
 
 impl NPYStream {
-    pub fn new(num_cols: usize) -> Self {
-        unimplemented!()
+    pub fn new(path: &Path, num_cols: usize) -> Self {
+        let file = File::open(path).unwrap();   // FIXME - error handling
+        let mut writer = BufWriter::new(file);
+
+        // Write the header to the file.
+        // This will be overwritten when the struct is finally dropped, but writing this now
+        // ensures that the correct number of bytes at the start of the file are reserved for the
+        // header.
+        writer.write(&make_header(0, num_cols));
+
+        NPYStream {writer, num_cols, num_rows: 0}
     }
 
     pub fn write(&mut self, row: Vec<f32>) {
         assert_eq!(self.num_cols, row.len());
 
-        unimplemented!()
+        for x in row {
+            let bytes = x.to_le_bytes();
+            self.writer.write(&bytes).unwrap_or_else(|err|
+                panic!("Error writing values on row {}: {:?}", self.num_rows, err));
+        }
+
+        self.num_rows += 1;
     }
 
 }
