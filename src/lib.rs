@@ -29,8 +29,9 @@ impl Drop for NPYStream {
 fn make_header(num_rows: usize, num_cols: usize) -> Vec<u8> {
     let header_prefix : &[u8] = b"\x93NUMPY\x01\x00";   // Format version 1.0
 
-    let header_str = format!("{{'descr': 'float32', 'fortran_order': False, 'shape': ({}, {})}}",
-        num_rows, num_cols);
+    let dtype_str = "<f4";  // Little-endian, 4 byte (32 bit) float
+    let header_str = format!("{{'descr': '{}', 'fortran_order': False, 'shape': ({}, {})}}",
+        dtype_str, num_rows, num_cols);
     let header = header_str.as_bytes();
     
     let header_size_bytes = (header.len() as u16).to_le_bytes();
