@@ -55,7 +55,8 @@ fn make_header(num_rows: usize, num_cols: usize) -> Vec<u8> {
         dtype_str, num_rows, num_cols);
     let header = header_str.as_bytes();
     
-    let header_size_bytes = (header.len() as u16).to_le_bytes();
+    let header_size = 128 - (header_prefix.len() + 2);
+    let header_size_bytes = (header_size as u16).to_le_bytes();
 
     let padding_required = 128 - (header_prefix.len() + header_size_bytes.len() + header.len() + 1);
 
