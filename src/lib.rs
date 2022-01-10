@@ -23,7 +23,7 @@ impl NPYStream {
         NPYStream {writer, num_cols, num_rows: 0}
     }
 
-    pub fn write(&mut self, row: Vec<f32>) {
+    pub fn write(&mut self, row: &Vec<f32>) {
         assert_eq!(self.num_cols, row.len());
 
         for x in row {
@@ -97,8 +97,8 @@ mod tests {
 
         let mut npy_stream : NPYStream = NPYStream::new(&file_path, 2);
 
-        npy_stream.write(vec![0.0, 1.0]);
-        npy_stream.write(vec![2.0, 3.0]);
+        npy_stream.write(&vec![0.0, 1.0]);
+        npy_stream.write(&vec![2.0, 3.0]);
 
         drop(npy_stream);   // Cause the file to be closed
 
